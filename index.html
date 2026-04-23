@@ -31,7 +31,7 @@
             opacity: 1;
             z-index: 0;
             pointer-events: none;
-            background: white;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.15) 50%, rgba(102, 126, 234, 0.1) 100%);
             border-radius: 0 0 0 500px;
             overflow: hidden;
             animation: slideInClockBg 0.8s ease-out;
@@ -791,6 +791,7 @@
                 opacity: 0.9;
                 top: 0;
                 border-radius: 0 0 0 250px;
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.2) 50%, rgba(102, 126, 234, 0.15) 100%);
             }
 
             .container {
@@ -891,6 +892,7 @@
                 width: 200px;
                 height: 200px;
                 border-radius: 0 0 0 200px;
+                background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.25) 50%, rgba(102, 126, 234, 0.2) 100%);
             }
 
             h1 {
@@ -1121,6 +1123,7 @@
         let soundLoopInterval = null;
         let swipeInTime = null;
         let elapsedSeconds = 0;
+        let originalTitle = document.title;
 
         const timerDisplay = document.getElementById('timerDisplay');
         const startBtn = document.getElementById('startBtn');
@@ -1180,6 +1183,15 @@
             
             const progressPercentage = (remainingSeconds / totalSeconds) * 100;
             progressFill.style.width = progressPercentage + '%';
+            
+            // Update browser tab title with countdown
+            if (isRunning && remainingSeconds > 0) {
+                document.title = `⏰ ${formatTime(remainingSeconds)} - Office Timer`;
+            } else if (remainingSeconds <= 0) {
+                document.title = `✅ Time Complete - Office Timer`;
+            } else {
+                document.title = originalTitle;
+            }
         }
 
         function updateStatusCards() {

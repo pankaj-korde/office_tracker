@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>4 Hour Office Timer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 50px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            min-width: 400px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 2.5em;
+        }
+
+        .settings-section {
+            background: #f9f9f9;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 2px solid #667eea;
+        }
+
+        .settings-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .time-inputs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 0.9em;
+            color: #555;
+            font-weight: bold;
+        }
+
+        .input-group input {
+            width: 60px;
+            padding: 8px;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            font-size: 1em;
+            text-align: center;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: #764ba2;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.5);
+        }
+
+        .btn-set {
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            font-size: 0.95em;
+        }
+
+        .btn-set:hover:not(:disabled) {
+            background: #764ba2;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .preset-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .preset-btn {
+            padding: 8px 15px;
+            background: #e0e7ff;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .preset-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .preset-btn.active {
+            background: #667eea;
+            color: white;
+        }
+
+        .timer-display {
+            font-size: 4em;
+            font-weight: bold;
+            color: #667eea;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f5f5f5;
+            transition: all 0.3s ease;
+        }
+
+        .timer-display.finished {
+            background: #ff4444;
+            color: white;
+            animation: blink 0.6s infinite;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            margin: 20px 0;
+            overflow: hidden;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            width: 100%;
+            transition: width 0.5s ease;
+            border-radius: 5px;
+        }
+
+        @keyframes blink {
+            0%, 49% {
+                opacity: 1;
+            }
+            50%, 100% {
+                opacity: 0.3;
+            }
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 30px 0;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .btn-start {
+            background: #4CAF50;
+            color: white;
+        }
+
+        .btn-start:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn-pause {
+            background: #ff9800;
+            color: white;
+        }
+
+        .btn-pause:hover:not(:disabled) {
+            background: #e68900;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 152, 0, 0.4);
+        }
+
+        .btn-reset {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-reset:hover:not(:disabled) {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .status {
+            font-size: 1.1em;
+            color: #666;
+            margin-top: 20px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .status.finished {
+            background: #ffebee;
+            color: #c62828;
+            border-left-color: #c62828;
+            font-weight: bold;
+        }
+
+        .sound-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 8px;
+        }
+
+        .sound-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #333;
+            user-select: none;
+        }
+
+        .sound-toggle input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+
+        .stop-sound-section {
+            margin: 20px 0;
+            padding: 15px;
+            background: #ffebee;
+            border-radius: 8px;
+            border: 2px solid #f44336;
+        }
+
+        .btn-stop-sound {
+            background: #f44336;
+            color: white;
+            padding: 12px 30px;
+            font-size: 1em;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 100%;
+        }
+
+        .btn-stop-sound:hover:not(:disabled) {
+            background: #da190b;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(244, 67, 54, 0.4);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Office Timer</h1>
+        
+        <div class="settings-section" id="settingsSection">
+            <h3>Set Time</h3>
+            <div class="time-inputs">
+                <div class="input-group">
+                    <label for="hoursInput">Hours:</label>
+                    <input type="number" id="hoursInput" min="0" max="23" value="4">
+                </div>
+                <div class="input-group">
+                    <label for="minutesInput">Minutes:</label>
+                    <input type="number" id="minutesInput" min="0" max="59" value="0">
+                </div>
+                <div class="input-group">
+                    <label for="secondsInput">Seconds:</label>
+                    <input type="number" id="secondsInput" min="0" max="59" value="0">
+                </div>
+                <button id="setTimeBtn" class="btn btn-set">Set Time</button>
+            </div>
+            <div class="preset-buttons">
+                <button class="preset-btn" data-seconds="120">2 min</button>
+                <button class="preset-btn" data-seconds="300">5 min</button>
+                <button class="preset-btn" data-seconds="600">10 min</button>
+                <button class="preset-btn" data-seconds="3600">1 hour</button>
+                <button class="preset-btn" data-seconds="7200">2 hours</button>
+                <button class="preset-btn" data-seconds="14400">4 hours</button>
+            </div>
+        </div>
+
+        <div class="timer-display" id="timerDisplay">04:00:00</div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        
+        <div class="button-group">
+            <button id="startBtn" class="btn btn-start">Start</button>
+            <button id="pauseBtn" class="btn btn-pause" disabled>Pause</button>
+            <button id="resetBtn" class="btn btn-reset">Reset</button>
+        </div>
+        
+        <div class="sound-section">
+            <label class="sound-toggle">
+                <input type="checkbox" id="soundToggle" checked>
+                <span>Sound Notifications</span>
+            </label>
+            <label class="sound-toggle">
+                <input type="checkbox" id="continuousSoundToggle">
+                <span>Continuous Sound When Done</span>
+            </label>
+        </div>
+        
+        <div class="stop-sound-section" id="stopSoundSection" style="display:none;">
+            <button id="stopSoundBtn" class="btn btn-stop-sound">Stop Sound</button>
+        </div>
+        
+        <div class="status" id="status">Ready to start</div>
+    </div>
+    
+    <script>
+        let totalSeconds = 4 * 60 * 60; // 4 hours in seconds
+        let remainingSeconds = totalSeconds;
+        let timerInterval = null;
+        let isRunning = false;
+        let soundEnabled = true;
+        let continuousSoundEnabled = false;
+        let soundLoopInterval = null;
+
+        const timerDisplay = document.getElementById('timerDisplay');
+        const startBtn = document.getElementById('startBtn');
+        const pauseBtn = document.getElementById('pauseBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const status = document.getElementById('status');
+        const hoursInput = document.getElementById('hoursInput');
+        const minutesInput = document.getElementById('minutesInput');
+        const secondsInput = document.getElementById('secondsInput');
+        const setTimeBtn = document.getElementById('setTimeBtn');
+        const presetButtons = document.querySelectorAll('.preset-btn');
+        const soundToggle = document.getElementById('soundToggle');
+        const continuousSoundToggle = document.getElementById('continuousSoundToggle');
+        const settingsSection = document.getElementById('settingsSection');
+        const progressFill = document.getElementById('progressFill');
+        const stopSoundSection = document.getElementById('stopSoundSection');
+        const stopSoundBtn = document.getElementById('stopSoundBtn');
+
+        // Format seconds to HH:MM:SS
+        function formatTime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // Update the display
+        function updateDisplay() {
+            timerDisplay.textContent = formatTime(remainingSeconds);
+            // Update progress bar
+            const progressPercentage = (remainingSeconds / totalSeconds) * 100;
+            progressFill.style.width = progressPercentage + '%';
+        }
+
+        // Set custom time
+        function setCustomTime() {
+            const hours = parseInt(hoursInput.value) || 0;
+            const minutes = parseInt(minutesInput.value) || 0;
+            const seconds = parseInt(secondsInput.value) || 0;
+            
+            totalSeconds = hours * 3600 + minutes * 60 + seconds;
+            
+            if (totalSeconds <= 0) {
+                alert('Please set a time greater than 0');
+                return;
+            }
+            
+            remainingSeconds = totalSeconds;
+            updateDisplay();
+            status.textContent = `Time set to ${formatTime(totalSeconds)}`;
+            
+            // Remove active state from all preset buttons
+            presetButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Re-enable settings if timer was running
+            if (!isRunning) {
+                settingsSection.style.opacity = '1';
+                settingsSection.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Set preset time
+        function setPresetTime(seconds) {
+            totalSeconds = seconds;
+            remainingSeconds = totalSeconds;
+            
+            // Update input fields
+            const hours = Math.floor(seconds / 3600);
+            const minutes = Math.floor((seconds % 3600) / 60);
+            const secs = seconds % 60;
+            
+            hoursInput.value = hours;
+            minutesInput.value = minutes;
+            secondsInput.value = secs;
+            
+            updateDisplay();
+            status.textContent = `Time set to ${formatTime(totalSeconds)}`;
+            
+            // Mark this button as active
+            presetButtons.forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Re-enable settings if timer was running
+            if (!isRunning) {
+                settingsSection.style.opacity = '1';
+                settingsSection.style.pointerEvents = 'auto';
+            }
+        }
+
+        // Start the timer
+        function startTimer() {
+            if (isRunning) return;
+            
+            isRunning = true;
+            startBtn.disabled = true;
+            pauseBtn.disabled = false;
+            settingsSection.style.opacity = '0.5';
+            settingsSection.style.pointerEvents = 'none';
+            status.textContent = 'Timer running...';
+            
+            timerInterval = setInterval(() => {
+                remainingSeconds--;
+                updateDisplay();
+                
+                // Play warning sound at 1 minute remaining
+                if (remainingSeconds === 60 && soundEnabled) {
+                    playWarningSound();
+                }
+                
+                // Play warning sound at 10 seconds remaining
+                if (remainingSeconds === 10 && soundEnabled) {
+                    playWarningSound();
+                }
+                
+                if (remainingSeconds <= 0) {
+                    finishTimer();
+                }
+            }, 1000);
+        }
+
+        // Pause the timer
+        function pauseTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            status.textContent = 'Timer paused';
+        }
+
+        // Reset the timer
+        function resetTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            stopSound(); // Stop any looping sound
+            remainingSeconds = totalSeconds;
+            updateDisplay();
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            settingsSection.style.opacity = '1';
+            settingsSection.style.pointerEvents = 'auto';
+            status.textContent = 'Ready to start';
+            timerDisplay.classList.remove('finished');
+            status.classList.remove('finished');
+            stopSoundSection.style.display = 'none';
+        }
+
+        // Timer finished
+        function finishTimer() {
+            isRunning = false;
+            clearInterval(timerInterval);
+            startBtn.disabled = false;
+            pauseBtn.disabled = true;
+            settingsSection.style.opacity = '1';
+            settingsSection.style.pointerEvents = 'auto';
+            
+            // Add blinking effect
+            timerDisplay.classList.add('finished');
+            status.classList.add('finished');
+            status.textContent = '✓ TIME COMPLETED! 🎉';
+            
+            // Stop any pending sound loop before starting new one if continuous is enabled
+            if (soundLoopInterval) {
+                clearInterval(soundLoopInterval);
+            }
+            
+            // Play completion sound
+            if (soundEnabled) {
+                playCompletionSound();
+            }
+            
+            // Start continuous sound loop if enabled
+            if (continuousSoundEnabled && soundEnabled) {
+                stopSoundSection.style.display = 'block';
+                soundLoopInterval = setInterval(() => {
+                    playCompletionSound();
+                }, 2000); // Play sound every 2 seconds
+            }
+            
+            // Optional: Show browser notification
+            if ('Notification' in window && Notification.permission === 'granted') {
+                new Notification('Timer Alert', {
+                    body: `${formatTime(totalSeconds)} timer completed! Time to wrap up!`,
+                    icon: '⏰'
+                });
+            }
+        }
+
+        // Warning sound (single beep)
+        function playWarningSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = 600;
+                oscillator.type = 'sine';
+                
+                gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.log('Could not play warning sound:', e);
+            }
+        }
+
+        // Completion sound (multiple beeps)
+        function playCompletionSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                const playBeep = (frequency, duration, delay = 0) => {
+                    setTimeout(() => {
+                        const oscillator = audioContext.createOscillator();
+                        const gainNode = audioContext.createGain();
+                        
+                        oscillator.connect(gainNode);
+                        gainNode.connect(audioContext.destination);
+                        
+                        oscillator.frequency.value = frequency;
+                        oscillator.type = 'sine';
+                        
+                        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                        
+                        oscillator.start(audioContext.currentTime);
+                        oscillator.stop(audioContext.currentTime + duration);
+                    }, delay);
+                };
+                
+                // Play three ascending beeps
+                playBeep(800, 0.3, 0);
+                playBeep(1000, 0.3, 350);
+                playBeep(1200, 0.3, 700);
+            } catch (e) {
+                console.log('Could not play completion sound:', e);
+            }
+        }
+
+        // Stop the sound loop
+        function stopSound() {
+            if (soundLoopInterval) {
+                clearInterval(soundLoopInterval);
+                soundLoopInterval = null;
+            }
+            stopSoundSection.style.display = 'none';
+        }
+
+        // Event listeners
+        startBtn.addEventListener('click', startTimer);
+        pauseBtn.addEventListener('click', pauseTimer);
+        resetBtn.addEventListener('click', resetTimer);
+        setTimeBtn.addEventListener('click', setCustomTime);
+        presetButtons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                setPresetTime(parseInt(e.target.dataset.seconds));
+            });
+        });
+
+        soundToggle.addEventListener('change', (e) => {
+            soundEnabled = e.target.checked;
+        });
+
+        continuousSoundToggle.addEventListener('change', (e) => {
+            continuousSoundEnabled = e.target.checked;
+        });
+
+        stopSoundBtn.addEventListener('click', stopSound);
+
+        // Handle Enter key in input fields
+        const inputFields = [hoursInput, minutesInput, secondsInput];
+        inputFields.forEach(field => {
+            field.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    setCustomTime();
+                }
+            });
+        });
+
+        // Request notification permission
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission();
+        }
+
+        // Initialize display
+        updateDisplay();
+    </script>
